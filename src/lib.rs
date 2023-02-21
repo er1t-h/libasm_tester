@@ -1,4 +1,17 @@
-pub use list::FtList;
+#[repr(C)]
+pub struct FtList {
+    pub data: *mut cty::c_void,
+    pub next: *mut FtList
+}
+
+impl Drop for FtList {
+    fn drop(&mut self) {
+        if !self.next.is_null() {
+            drop(self.next);
+            unsafe { libc::free(self as *mut FtList as *mut cty::c_void); }
+        }
+    }
+}
 
 extern "C" {
     // Mandatory
@@ -12,9 +25,8 @@ extern "C" {
     // Bonus
     pub fn ft_atoi_base(str: *const cty::c_char, base: *const cty::c_char) -> cty::c_int;
     pub fn ft_list_push_front(begin: *mut *const FtList, data: *const cty::c_void);
+    pub fn ft_list_size(begin: *const FtList) -> cty::size_t;
 }
 
 #[cfg(test)]
 mod tests;
-
-mod list;

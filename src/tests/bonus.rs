@@ -25,65 +25,67 @@ mod atoi_base {
 	test!(nothing_in_str, "", "0123456789", 0);
 }
 
-// mod list_push_front {
-// 	use crate::{list::FtList, ft_list_push_front};
-// 	use std::ffi::CString;
+mod list_push_front {
+	use crate::{FtList, ft_list_push_front};
+	use std::ffi::CString;
 
-// 	macro_rules! inside_test {
-// 		($list: ident, $current: expr, $($other_args: expr),+) => {
-// 			let data = CString::new($current).unwrap();
-// 			unsafe {
-// 				ft_list_push_front(&mut $list, data.as_ptr() as *const cty::c_void);
-// 			}
-// 			let elt: &FtList = inside_test!($list, $($other_args),+);
-// 			let elt: &FtList = unsafe {&*elt.next};
-// 			assert_eq!(unsafe {std::slice::from_raw_parts(elt.data as *mut u8, 3)}, $current.as_bytes());
-// 			elt
-// 		};
-// 		($list: ident, $current: expr) => {{
-// 			let data = CString::new($current).unwrap();
-// 			unsafe {
-// 				ft_list_push_front(&mut $list, data.as_ptr() as *const cty::c_void);
-// 			}
-// 			let elt: &FtList = unsafe {&*$list};
-// 			assert_eq!(unsafe {std::slice::from_raw_parts(elt.data as *mut u8, 3)}, $current.as_bytes());
-// 			elt
-// 		}};
-// 	}
+	macro_rules! test {
+		($name: ident, $arg: expr) => {
+			#[test]
+			fn $name() {
+				let mut list: *const FtList = std::ptr::null();
+				let all_data: Vec<CString> = $arg.iter().map(|elt| CString::new(*elt).unwrap()).collect();
+				for i in all_data.iter() {
+					unsafe {
+						ft_list_push_front(&mut list, i.as_ptr() as *const cty::c_void);
+					}
+				}
+				let mut elt: &FtList = unsafe {&*list};
+				for (index, i) in all_data.iter().rev().enumerate() {
+					let content = unsafe {std::slice::from_raw_parts(elt.data as *mut u8, i.as_bytes().len())};
+					println!("Index: {:3} ; Content: {}", index, String::from_utf8_lossy(&content));
+					assert_eq!(content, i.as_bytes());
+					let tmp: *mut FtList = unsafe { std::ptr::read(&((elt as *const FtList) as *mut FtList)) };
+					elt = unsafe {&*elt.next};
+					unsafe { libc::free(tmp as *mut cty::c_void); }
+				}
+			}
+		};
+	}
 
-// 	macro_rules! test {
-// 		($name: ident, $($arg: expr),+) => {
-// 			#[test]
-// 			fn $name() {
-// 				let mut list: *const FtList = std::ptr::null();
-// 				inside_test!(list, $($arg),+);
-// 			}
-// 		};
-// 	}
+	test!(basic, ["Yes", "Nope", "Meh"]);
+	test!(more_items, ["Yes", "Nope", "Meh", "I dunno", "Lorem Ipsum", "Riichi Ippatsu Tsumo", "Ron", "ye"]);
+	test!(one_item, ["Yes"]);
+}
 
-// 	test!(basic, "Yes", "Nope", "Meh");
+mod list_size {
+	use crate::{FtList, ft_list_size, ft_list_push_front};
+	use std::ffi::CString;
 
-// 	// #[test]
-// 	// fn basic() {
-// 	// 	let mut list: *const FtList = std::ptr::null();
-// 	// 	let data1 = CString::new("Yes").unwrap();
-// 	// 	unsafe {
-// 	// 		ft_list_push_front(&mut list, data1.as_ptr() as *const cty::c_void);
-// 	// 	}
-// 	// 	let data2 = CString::new("Nope").unwrap();
-// 	// 	unsafe {
-// 	// 		ft_list_push_front(&mut list, data2.as_ptr() as *const cty::c_void);
-// 	// 	}
-// 	// 	let data3 = CString::new("Meh").unwrap();
-// 	// 	unsafe {
-// 	// 		ft_list_push_front(&mut list, data3.as_ptr() as *const cty::c_void);
-// 	// 	}
+	macro_rules! test {
+		($name: ident, $arg: expr) => {
+			#[test]
+			fn $name() {
+				let mut list: *const FtList = std::ptr::null();
+				let all_data: Vec<CString> = $arg.iter().map(|elt| CString::new(*elt).unwrap()).collect();
+				for i in all_data.iter() {
+					unsafe {
+						ft_list_push_front(&mut list, i.as_ptr() as *const cty::c_void);
+					}
+				}
+				let size = unsafe { ft_list_size(list) };
+				assert_eq!(size, $arg.len());
+				while (!list.is_null()) {
+					let tmp: *mut FtList = unsafe { std::ptr::read(&(list as *mut FtList)) };
+					list = unsafe {&*(*list).next};
+					unsafe { libc::free(tmp as *mut cty::c_void); }
+				}
+			}
+		};
+	}
 
-// 	// 	let elt1 = unsafe {&*list};
-// 	// 	let elt2 = unsafe {&*elt1.next};
-// 	// 	let elt3 = unsafe {&*elt2.next};
-// 	// 	assert_eq!(unsafe {std::slice::from_raw_parts(elt1.data as *mut u8, 3)}, data3.as_bytes());
-// 	// 	assert_eq!(unsafe {std::slice::from_raw_parts(elt2.data as *mut u8, 4)}, data2.as_bytes());
-// 	// 	assert_eq!(unsafe {std::slice::from_raw_parts(elt3.data as *mut u8, 3)}, data1.as_bytes());
-// 	// }
-// }
+	test!(basic, ["Yes", "Nope", "Meh"]);
+	test!(more_items, ["Yes", "Nope", "Meh", "I dunno", "Lorem Ipsum", "Riichi Ippatsu Tsumo", "Ron", "ye"]);
+	test!(one_item, ["Yes"]);
+	test!(hundred, ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99", "100"]);
+}

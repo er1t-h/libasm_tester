@@ -45,9 +45,8 @@ mod strcpy {
 				let mut dest = [0_u8; $to_test.len() + 1];
 				let dest_ptr = dest.as_mut_ptr() as *mut i8;
 				let ret_val = unsafe {
-					ft_strcpy(dest_ptr, src.clone().into_raw())
+					ft_strcpy(dest_ptr, src.as_ptr() as *mut i8)
 				};
-
 				let final_dest = unsafe {std::slice::from_raw_parts(dest_ptr as *mut u8, $to_test.len() + 1)};
 				let final_ret_val = unsafe {std::slice::from_raw_parts(ret_val as *mut u8, $to_test.len() + 1)};
 				assert_eq!(final_ret_val, final_dest);
@@ -72,7 +71,7 @@ mod strcmp {
 				let s1 = CString::new($to_test).expect("Cannot create first string");
 				let s2 = CString::new($to_test).expect("Cannot create second string");
 				let ret_val = unsafe {
-					ft_strcmp(s1.into_raw(), s2.into_raw())
+					ft_strcmp(s1.as_ptr(), s2.as_ptr())
 				};
 				assert_eq!(ret_val, 0);
 			}
@@ -83,7 +82,7 @@ mod strcmp {
 				let s1 = CString::new($str1).expect("Cannot create first string");
 				let s2 = CString::new($str2).expect("Cannot create second string");
 				let ret_val = unsafe {
-					ft_strcmp(s1.into_raw(), s2.into_raw())
+					ft_strcmp(s1.as_ptr(), s2.as_ptr())
 				};
 				assert!(ret_val < 0);
 			}
@@ -94,7 +93,7 @@ mod strcmp {
 				let s1 = CString::new($str1).expect("Cannot create first string");
 				let s2 = CString::new($str2).expect("Cannot create second string");
 				let ret_val = unsafe {
-					ft_strcmp(s1.into_raw(), s2.into_raw())
+					ft_strcmp(s1.as_ptr(), s2.as_ptr())
 				};
 				assert!(ret_val > 0);
 			}
@@ -133,7 +132,7 @@ mod write {
 				let buffer = CString::new($to_test).expect("Couldn't create string");
 				let length = $to_test.len();
 				let ret_val = unsafe {
-					ft_write(fd, buffer.into_raw() as *mut c_void, length)
+					ft_write(fd, buffer.as_ptr() as *mut c_void, length)
 				};
 				assert_eq!(ret_val, length as isize, "Return values do not match");
 				let file_content = std::fs::read_to_string(path).expect("Couldn't read file");

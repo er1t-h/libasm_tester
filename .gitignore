@@ -15,3 +15,5 @@ Cargo.lock
 
 *.log
 *.a
+*.o
+test_files/write/*
