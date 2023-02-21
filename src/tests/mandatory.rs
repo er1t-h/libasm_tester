@@ -1,5 +1,7 @@
 mod strlen {
     use std::ffi::CString;
+    use rusty_fork::rusty_fork_test;
+
     use crate::ft_strlen;
 
 	macro_rules! test {
@@ -13,6 +15,17 @@ mod strlen {
 				assert_eq!(result, test_str.as_bytes().len());
 			}
 		};
+	}
+
+	rusty_fork_test! {
+		#[test]
+		#[should_panic="signal: 11"]
+		fn null() {
+			let result = unsafe {
+				ft_strlen(std::ptr::null())
+			};
+			assert_eq!(result, 0);
+		}
 	}
 
 	test!(basic, "SuperTest");
@@ -64,7 +77,7 @@ mod strcmp {
 				assert_eq!(ret_val, 0);
 			}
 		};
-		($name: ident, $str1: expr, $str2: expr) => {
+		($name: ident, positive, $str1: expr, $str2: expr) => {
 			#[test]
 			fn $name() {
 				let s1 = CString::new($str1).expect("Cannot create first string");
@@ -72,7 +85,18 @@ mod strcmp {
 				let ret_val = unsafe {
 					ft_strcmp(s1.into_raw(), s2.into_raw())
 				};
-				assert_ne!(ret_val, 0);
+				assert!(ret_val < 0);
+			}
+		};
+		($name: ident, negative, $str1: expr, $str2: expr) => {
+			#[test]
+			fn $name() {
+				let s1 = CString::new($str1).expect("Cannot create first string");
+				let s2 = CString::new($str2).expect("Cannot create second string");
+				let ret_val = unsafe {
+					ft_strcmp(s1.into_raw(), s2.into_raw())
+				};
+				assert!(ret_val > 0);
 			}
 		};
 	}
@@ -83,60 +107,74 @@ mod strcmp {
 	test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。");
 
 	// Mismatch
-	test!(basic_mismatch, "SuperTest", "SuperTeste");
-	test!(longer_mismatch, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.", "Lorme ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.");
-	test!(utf8_mismatch, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。", "Salut! C'est un test de qualité contenant de supers UTF-8. 🀓麻雀🀄がしたい。このテストは本当に面白いなぁ。");
+	test!(basic_negative, negative, "SuperTest", "SuperTeste");
+	test!(basic_positive, positive, "SuperTeste", "SuperTest");
+	test!(longer_negative, negative, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.", "Lorme ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.");
+	test!(longer_positive, positive, "Lorme ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.");
+	test!(utf8_negative, negative, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。", "Salut! C'est un test de qualité contenant de supers UTF-8. 🀓麻雀🀄がしたい。このテストは本当に面白いなぁ。");
+	test!(utf8_positive, positive, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀓麻雀🀄がしたい。このテストは本当に面白いなぁ。", "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。");
 }
 
 mod write {
+	use std::fs::File;
     use std::ffi::CString;
+	use std::os::unix::io::AsRawFd;
     use cty::c_void;
 
     use crate::ft_write;
 
 	macro_rules! test {
-		($name: ident, $to_test: expr) => {
+		($name: ident, $file_name: expr, $to_test: expr) => {
 			#[test]
 			fn $name() {
-				let fd = 1;
+				let path = concat!("test_files/write/", $file_name, ".txt");
+				let file = File::create(path).expect("Couldn't create file");
+				let fd = file.as_raw_fd();
 				let buffer = CString::new($to_test).expect("Couldn't create string");
 				let length = $to_test.len();
 				let ret_val = unsafe {
 					ft_write(fd, buffer.into_raw() as *mut c_void, length)
 				};
-				assert_eq!(ret_val, length as isize);
+				assert_eq!(ret_val, length as isize, "Return values do not match");
+				let file_content = std::fs::read_to_string(path).expect("Couldn't read file");
+				assert_eq!(file_content, $to_test, "The content of the file does not match to the given string. ");
 			}
 		};
 	}
 
-	test!(basic, "SuperTest\n");
-	test!(longer, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.\n");
-	test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。\n");
+	test!(oui, "oui", "C'est vraiment genial le rust\n");
+	test!(basic, "basic", "SuperTest\n");
+	test!(longer, "longer", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.\n");
+	test!(utf8, "utf8", "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。\n");
 }
 
 mod read {
-    use std::ffi::CString;
     use cty::c_void;
+	use std::fs::File;
+	use std::os::unix::io::AsRawFd;
 
     use crate::ft_read;
 
 	macro_rules! test {
-		($name: ident, $to_test: expr) => {
+		($name: ident, $file_name: expr) => {
+			#[test]
+			fn $name() {
+				let file_content = std::fs::read_to_string(concat!("test_files/read/", $file_name,".txt")).expect("Cannot read file");
+				let file = File::open(concat!("test_files/read/", $file_name, ".txt")).expect("Cannot open file");
+				let fd = file.as_raw_fd();
+				let mut buffer = vec![0_u8; file_content.len()];
+				let length = file_content.len();
+				let ret_val = unsafe {
+					ft_read(fd, buffer.as_mut_ptr() as *mut c_void, length)
+				};
+				assert_eq!(ret_val, length as isize);
+				assert_eq!(buffer, file_content.as_bytes());
+			}
 		};
 	}
 
-	#[test]
-	fn basic() {
-		let fd = 1;
-		let mut buffer = [0_i8; 10];
-		let length = 10;
-		let ret_val = unsafe {
-			ft_read(fd, buffer.as_mut_ptr() as *mut c_void, length)
-		};
-		assert_eq!(ret_val, length as isize);
-	}
 
-	test!(basic, "SuperTest\n");
-	test!(longer, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.\n");
-	test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。\n");
+	test!(basic, "basic");
+	test!(longer, "longer");
+	test!(utf8, "utf8");
 }
