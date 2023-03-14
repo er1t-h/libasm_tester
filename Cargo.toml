@@ -21,3 +21,4 @@ rusty-fork = {version = "0.3.0", optional = true}
 [features]
 "fork" = ["rusty-fork"]
 "bonus" = []
+"verbose" = []

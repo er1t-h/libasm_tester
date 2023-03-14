@@ -1,0 +1,28 @@
+{
+   cargo test initial leak
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:*std*rt*lang_start_internal*
+   fun:*std*rt*lang_start*
+   fun:main
+}
+{
+   Rusty fork leak
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:*rusty_fork*child_wrapper*ChildWrapper*wait_timeout*
+   fun:*rusty_fork*fork_test*wait_timeout*
+}
+{
+   Rusty fork leak
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   ...
+   fun:*hashbrown*map*HashMap*insert*
+   fun:*std*collections*hash*map*HashMap*insert*
+}
