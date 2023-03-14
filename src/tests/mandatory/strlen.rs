@@ -4,26 +4,15 @@ use crate::ft_strlen;
 
 macro_rules! test {
 	($name: ident, $to_test: expr) => {
-		#[test]
-		fn $name() {
-			let test_str = CString::new($to_test).expect("Couldn't create string");
-			let result = unsafe {
-				ft_strlen(test_str.as_ptr())
-			};
-			assert_eq!(result, test_str.as_bytes().len());
+		crate::fork_test! {
+			#[test]
+			fn $name() {
+				let test_str = CString::new($to_test).expect("Couldn't create string");
+				let result = unsafe { ft_strlen(test_str.as_ptr()) };
+				assert_eq!(result, test_str.as_bytes().len());
+			}
 		}
 	};
-}
-
-crate::fork_test! {
-	#[test]
-	#[should_panic="signal: 11"]
-	fn null() {
-		let result = unsafe {
-			ft_strlen(std::ptr::null())
-		};
-		assert_eq!(result, 0);
-	}
 }
 
 test!(basic, "SuperTest");

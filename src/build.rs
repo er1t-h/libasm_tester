@@ -5,7 +5,8 @@ extern crate bindgen;
 fn main() {
 	println!("cargo:rerun-if-changed=libasm.a");
     println!("cargo:rerun-if-changed=bindgen/libasm.h");
-    println!("cargo:rerun-if-changed=utils/*.c");
+    println!("cargo:rerun-if-changed=utils/comparison.c");
+    println!("cargo:rerun-if-changed=utils/no_free.c");
     println!(r"cargo:rustc-link-search=.");
     println!(r"cargo:rustc-link-lib=asm");
 
