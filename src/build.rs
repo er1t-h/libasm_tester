@@ -1,4 +1,7 @@
-use std::{env, path::{PathBuf, Path}};
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 
 extern crate bindgen;
 
@@ -18,7 +21,6 @@ fn main() {
     if !Path::new("../libasm.a").exists() {
         panic!("`../libasm.a` does not exist.")
     }
-
 
     // Builds the helper functions
     cc::Build::new()

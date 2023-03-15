@@ -6,25 +6,25 @@ use std::os::unix::io::AsRawFd;
 use crate::ft_write;
 
 macro_rules! test {
-	($name: ident, $file_name: expr, $to_test: expr) => {
-		crate::fork_test! {
-			#[test]
-			fn $name() {
-				let path = concat!("test_files/write/", $file_name, ".txt");
-				let file = File::create(path).expect("Couldn't create file");
-				let fd = file.as_raw_fd();
-				let buffer = CString::new($to_test).expect("Couldn't create string");
-				let length = $to_test.len();
-				let ret_val = unsafe { ft_write(fd, buffer.as_ptr() as *mut c_void, length) };
-				assert_eq!(ret_val, length as isize, "Return values do not match");
-				let file_content = std::fs::read_to_string(path).expect("Couldn't read file");
-				assert_eq!(
-					file_content, $to_test,
-					"The content of the file does not match to the given string. "
-				);
-			}
-		}
-	};
+    ($name: ident, $file_name: expr, $to_test: expr) => {
+        crate::fork_test! {
+            #[test]
+            fn $name() {
+                let path = concat!("test_files/write/", $file_name, ".txt");
+                let file = File::create(path).expect("Couldn't create file");
+                let fd = file.as_raw_fd();
+                let buffer = CString::new($to_test).expect("Couldn't create string");
+                let length = $to_test.len();
+                let ret_val = unsafe { ft_write(fd, buffer.as_ptr() as *mut c_void, length) };
+                assert_eq!(ret_val, length as isize, "Return values do not match");
+                let file_content = std::fs::read_to_string(path).expect("Couldn't read file");
+                assert_eq!(
+                    file_content, $to_test,
+                    "The content of the file does not match to the given string. "
+                );
+            }
+        }
+    };
 }
 
 test!(oui, "oui", "C'est vraiment genial le rust\n");

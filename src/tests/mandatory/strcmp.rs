@@ -2,25 +2,25 @@ use crate::assert_same_sign;
 use std::ffi::CString;
 
 macro_rules! test {
-	($name: ident, $str: expr) => {
-		test!($name, $str, $str);
-	};
-	($name: ident, $str1: expr, $str2: expr) => {
-		crate::fork_test! {
-			#[test]
-			fn $name() {
-				let s1 = CString::new($str1).expect("Cannot create first string");
-				let s2 = CString::new($str2).expect("Cannot create second string");
-				let ret_val = unsafe {
-					crate::ft_strcmp(s1.as_ptr(), s2.as_ptr())
-				};
-				let libc_val = unsafe {
-					libc::strcmp(s1.as_ptr(), s2.as_ptr())
-				};
-				assert_same_sign!(ret_val, libc_val);
-			}
-		}
-	};
+    ($name: ident, $str: expr) => {
+        test!($name, $str, $str);
+    };
+    ($name: ident, $str1: expr, $str2: expr) => {
+        crate::fork_test! {
+            #[test]
+            fn $name() {
+                let s1 = CString::new($str1).expect("Cannot create first string");
+                let s2 = CString::new($str2).expect("Cannot create second string");
+                let ret_val = unsafe {
+                    crate::ft_strcmp(s1.as_ptr(), s2.as_ptr())
+                };
+                let libc_val = unsafe {
+                    libc::strcmp(s1.as_ptr(), s2.as_ptr())
+                };
+                assert_same_sign!(ret_val, libc_val);
+            }
+        }
+    };
 }
 
 // Matching

@@ -23,7 +23,6 @@ macro_rules! assert_same_sign {
 #[allow(unused_imports)]
 pub(crate) use assert_same_sign;
 
-
 #[allow(unused_macros)]
 #[cfg(feature = "fork")]
 macro_rules! fork_test {
@@ -93,7 +92,7 @@ macro_rules! verbose {
 #[allow(unused_macros)]
 #[cfg(not(feature = "verbose"))]
 macro_rules! verbose {
-	($($args: expr),+) => {};
+    ($($args: expr),+) => {};
 }
 
 #[allow(unused_imports)]
