@@ -1,15 +1,15 @@
+use crate::libasm;
+use pretty_assertions::assert_eq;
 use std::ffi::CString;
-
-use crate::ft_atoi_base;
 
 macro_rules! test {
     ($name: ident, $str: expr, $base: expr, $result: expr) => {
         crate::fork_test! {
             #[test]
             fn $name() {
-                let str = CString::new($str).expect("Cannot create str");
-                let base = CString::new($base).expect("Cannot create base");
-                let ret_val = unsafe { ft_atoi_base(str.as_ptr(), base.as_ptr()) };
+                let str = CString::new($str).expect("DPS: Cannot create str");
+                let base = CString::new($base).expect("DPS: Cannot create base");
+                let ret_val = unsafe { libasm::ft_atoi_base(str.as_ptr(), base.as_ptr()) };
                 assert_eq!(ret_val, $result);
             }
         }
@@ -49,3 +49,6 @@ test!(
 );
 test!(nothing_in_base, "Super", "", 0);
 test!(nothing_in_str, "", "0123456789", 0);
+
+// How to add tests:
+// `test!(name_of_the_test, "string to atoi", "the base", expected_result)`

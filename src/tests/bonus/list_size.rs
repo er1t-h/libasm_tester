@@ -1,4 +1,4 @@
-use crate::{ft_list_push_front, ft_list_size, s_list};
+use crate::libasm::{self, TList};
 use std::ffi::CString;
 
 macro_rules! test {
@@ -6,18 +6,18 @@ macro_rules! test {
         crate::fork_test! {
             #[test]
             fn $name() {
-                let mut list: *mut s_list = std::ptr::null::<s_list>() as *mut s_list;
+                let mut list: *mut TList = std::ptr::null::<TList>() as *mut TList;
                 let all_data: Vec<CString> =
-                    $arg.iter().map(|elt| CString::new(*elt).unwrap()).collect();
+                    $arg.iter().map(|elt| CString::new(*elt).expect("DPS: Couldn't create a CString")).collect();
                 for i in all_data.iter() {
                     unsafe {
-                        ft_list_push_front(&mut list, i.as_ptr() as *mut cty::c_void);
+                        libasm::ft_list_push_front(&mut list, i.as_ptr() as *mut cty::c_void);
                     }
                 }
-                let size = unsafe { ft_list_size(list) };
-                assert_eq!(size, $arg.len());
+                let size = unsafe { libasm::ft_list_size(list) };
+                assert_eq!(size, $arg.len(), "wrong list size");
                 while (!list.is_null()) {
-                    let tmp: *mut s_list = unsafe { std::ptr::read(&(list as *mut s_list)) };
+                    let tmp: *mut TList = unsafe { std::ptr::read(&(list as *mut TList)) };
                     list = unsafe { &mut *(*list).next };
                     unsafe {
                         libc::free(tmp as *mut cty::c_void);
@@ -28,6 +28,7 @@ macro_rules! test {
     };
 }
 
+test!(with_empty_list, [] as [&str; 0]);
 test!(basic, ["Yes", "Nope", "Meh"]);
 test!(
     more_items,
@@ -55,3 +56,6 @@ test!(
         "92", "93", "94", "95", "96", "97", "98", "99", "100"
     ]
 );
+
+// How to add tests:
+// `test!(name_of_the_test, ["str1", "str2", "str3", ...])`

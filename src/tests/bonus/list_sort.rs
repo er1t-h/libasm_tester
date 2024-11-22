@@ -1,37 +1,46 @@
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 
-use crate::{ft_list_push_front, ft_list_sort, s_list, strcmp_wrapper};
+use crate::{
+    libasm::{self, TList},
+    utils,
+};
+use pretty_assertions::assert_eq;
 
 macro_rules! test {
     ($name:ident, $value: expr) => {
         crate::fork_test! {
             #[test]
-            fn $name() {
-                let mut list: *mut s_list = std::ptr::null::<s_list>() as *mut s_list;
+            fn $name(){
+                let mut list: *mut TList = std::ptr::null::<TList>() as *mut TList;
                 let mut all_data: Vec<CString> =
-                    $value.iter().map(|elt| CString::new(*elt).unwrap()).collect();
+                    $value.iter().map(|elt| CString::new(*elt).expect("DPS: couldn't create a CString")).collect();
                 for i in all_data.iter() {
                     unsafe {
-                        ft_list_push_front(&mut list, i.as_ptr() as *mut cty::c_void);
+                        libasm::ft_list_push_front(&mut list, i.as_ptr() as *mut libc::c_void);
                     }
                 }
-                unsafe { ft_list_sort(&mut list, Some(strcmp_wrapper)) }
+                unsafe { libasm::ft_list_sort(&mut list, utils::strcmp_wrapper) }
 
                 all_data.sort();
-                for i in all_data
-                    .iter()
+                let mut user_sorted_data = Vec::new();
+                for _ in all_data.iter()
                 {
-                    let tmp: *mut s_list = unsafe { std::ptr::read(&(list as *mut s_list)) };
+                    let tmp: *mut TList = unsafe { std::ptr::read(&(list as *mut TList)) };
                     list = unsafe { &mut *(*list).next };
                     let content = unsafe {
-                        std::slice::from_raw_parts((*tmp).data as *mut u8, i.as_bytes().len())
+                        CStr::from_ptr((*tmp).data.cast())
                     };
-                    crate::verbose!("Content: {:?}", content);
-                    assert_eq!(content, i.as_bytes());
+                    user_sorted_data.push(String::from_utf8_lossy(content.to_bytes()).into_owned());
                     unsafe {
-                        libc::free(tmp as *mut cty::c_void);
+                        libc::free(tmp as *mut libc::c_void);
                     }
                 }
+                let all_string: Vec<_> = all_data.into_iter().map(|x| String::from_utf8_lossy(x.as_bytes()).into_owned()).collect();
+                assert_eq!(
+                    all_string,
+                    user_sorted_data,
+                    "the array is not sorted"
+                );
             }
         }
     };
@@ -63,3 +72,6 @@ test!(
         "98", "96", "93", "74", "75", "97", "90", "91", "92",
     ]
 );
+
+// How to add tests:
+// `test!(name_of_the_test, ["str1", "str2", "str3", ...])`

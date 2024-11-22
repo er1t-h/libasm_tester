@@ -1,26 +1,32 @@
-use crate::ft_strcpy;
+use crate::libasm;
+use pretty_assertions::{assert_eq, assert_str_eq};
 use std::ffi::CString;
 
+///
+/// This tests will `ft_strcpy` the expected string to an empty buffer.
+/// It will then assert that the returned pointer is equal to the given `dest` pointer
+/// And it will compare the two buffers
+///
 macro_rules! test {
     ($name: ident, $to_test: expr) => {
         crate::fork_test! {
             #[test]
             fn $name() {
-                let src = CString::new($to_test).expect("Couldn't create string");
-                let mut dest = [0_u8; $to_test.len() + 1];
+                let src = CString::new($to_test).expect("DPS: Couldn't create string");
+                let mut dest = [55_u8; $to_test.len() + 1]; // putting 55 to ensure that ft_strcpy copies the \0 character
                 let dest_ptr = dest.as_mut_ptr() as *mut i8;
-                let ret_val = unsafe { ft_strcpy(dest_ptr, src.as_ptr() as *mut i8) };
-                let final_dest =
-                    unsafe { std::slice::from_raw_parts(dest_ptr as *mut u8, $to_test.len() + 1) };
-                let final_ret_val =
-                    unsafe { std::slice::from_raw_parts(ret_val as *mut u8, $to_test.len() + 1) };
-                assert_eq!(final_ret_val, final_dest);
-                assert_eq!(final_dest, src.as_bytes_with_nul());
+                let ret_val = unsafe { libasm::ft_strcpy(dest_ptr, src.as_ptr() as *mut i8) };
+                assert_eq!(dest_ptr, ret_val, "the destination pointer and the returned pointer are different");
+                assert_str_eq!($to_test, String::from_utf8_lossy(&dest[..dest.len() - 1]), "the buffer wasn't copied as expected");
+                assert!(dest.last() == Some(&0), r"the \0 character was not copied")
             }
         }
     };
 }
 
 test!(basic, "superTest");
-test!(longer, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.");
-test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。");
+test!(longer, include_str!("../../../test_files/longer.txt"));
+test!(utf8, include_str!("../../../test_files/utf8.txt"));
+
+// How to add new tests:
+// Simply write `test!(name_of_the_test, "the string that will be tested")`

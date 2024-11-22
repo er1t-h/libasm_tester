@@ -1,33 +1,53 @@
-use cty::c_void;
-use std::ffi::CString;
+use super::pipe;
+use crate::libasm;
+use pretty_assertions::{assert_eq, assert_str_eq};
 use std::fs::File;
-use std::os::unix::io::AsRawFd;
+use std::io::Read;
+use std::os::fd::FromRawFd;
 
-use crate::ft_write;
-
+///
+/// This test will use `ft_write` to write into a Unix pipe, then read it using
+/// Rust's functions. It will check the return value of `ft_write`, and compare
+/// the buffer read from the pipe with the original input
+///
 macro_rules! test {
-    ($name: ident, $file_name: expr, $to_test: expr) => {
+    ($name: ident, $to_test: expr) => {
         crate::fork_test! {
             #[test]
             fn $name() {
-                let path = concat!("test_files/write/", $file_name, ".txt");
-                let file = File::create(path).expect("Couldn't create file");
-                let fd = file.as_raw_fd();
-                let buffer = CString::new($to_test).expect("Couldn't create string");
-                let length = $to_test.len();
-                let ret_val = unsafe { ft_write(fd, buffer.as_ptr() as *mut c_void, length) };
-                assert_eq!(ret_val, length as isize, "Return values do not match");
-                let file_content = std::fs::read_to_string(path).expect("Couldn't read file");
-                assert_eq!(
-                    file_content, $to_test,
-                    "The content of the file does not match to the given string. "
-                );
+                unsafe {
+                    let [read, write] = pipe();
+                    let mut read = File::from_raw_fd(read);
+                    let _write = File::from_raw_fd(write);
+                    let to_write = $to_test;
+                    let return_value = libasm::ft_write(write, to_write.as_ptr().cast(), to_write.len());
+                    assert_eq!(return_value, to_write.len() as isize, "the return value should be equal to the buffer's len");
+                    std::mem::drop(_write);
+                    let mut buffer = Vec::with_capacity(to_write.len());
+                    read.read_to_end(&mut buffer).expect("DPS: couldn't read from the pipe");
+                    assert_str_eq!(String::from_utf8_lossy(to_write), String::from_utf8_lossy(buffer.as_slice()), "the two buffers are different");
+                }
             }
         }
     };
 }
 
-test!(oui, "oui", "C'est vraiment genial le rust\n");
-test!(basic, "basic", "SuperTest\n");
-test!(longer, "longer", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.\n");
-test!(utf8, "utf8", "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。\n");
+crate::fork_test! {
+    #[test]
+    fn invalid_fd() {
+        unsafe {
+            let return_value = libasm::ft_write(-1, b"test".as_ptr().cast(), 4);
+            assert_eq!(return_value, -1, "if the system call fail, it should return -1");
+            assert_eq!(libc::EBADF, *libc::__errno_location());
+        }
+    }
+}
+
+test!(nothing, b"");
+test!(short, b"SuperTest\n");
+test!(longer, include_bytes!("../../../test_files/longer.txt"));
+test!(utf8, include_bytes!("../../../test_files/utf8.txt"));
+
+// How to add new tests:
+// Simply write `test!(name_of_the_test, b"the string that will be written")`
+// If you want to add test using non-ascii characters, use `"the string that will be written".as_bytes()` instead.

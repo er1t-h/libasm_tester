@@ -1,47 +1,55 @@
-use crate::{ft_list_push_front, ft_list_remove_if, s_list, verbose};
-use std::ffi::CString;
+use crate::{
+    libasm::{self, TList},
+    utils,
+};
+use std::ffi::{CStr, CString};
 
 macro_rules! test {
     ($name: ident, $arg: expr, $to_remove: expr) => {
         crate::fork_test! {
             #[test]
             fn $name() {
-                let mut list: *mut s_list = std::ptr::null::<s_list>() as *mut s_list;
-                let all_data: Vec<CString> = $arg
+                let arg = $arg;
+                let mut list: *mut TList = std::ptr::null::<TList>() as *mut TList;
+                let all_data: Vec<CString> = arg
                     .iter()
-                    .map(|elt| CString::new(*elt).unwrap())
+                    .map(|elt| CString::new(*elt).expect("DPS: couldn't create a CString"))
                     .collect();
                 for i in all_data.iter() {
                     unsafe {
-                        ft_list_push_front(&mut list, i.as_ptr() as *mut cty::c_void);
+                        libasm::ft_list_push_front(&mut list, i.as_ptr() as *mut cty::c_void);
                     }
                 }
-                let tmp = CString::new($to_remove).unwrap();
+                let tmp = CString::new($to_remove).expect("DPS: couldn't create a CString");
                 unsafe {
-                    ft_list_remove_if(
+                    libasm::ft_list_remove_if(
                         &mut list,
                         tmp.as_ptr() as *mut libc::c_void,
-                        Some(crate::compare_first_letter),
-                        Some(crate::no_free),
+                        utils::compare_first_letter,
+                        utils::no_free,
                     )
                 }
 
-                for i in $arg
+                let right_data: Vec<_> = arg
                     .iter()
-                    .rev()
                     .filter(|elt| elt.chars().nth(0) != $to_remove.chars().nth(0))
+                    .map(|x| String::from_utf8_lossy(x.as_bytes()).into_owned())
+                    .rev()
+                    .collect();
+                let mut user_data = Vec::new();
+                for _ in right_data.iter()
                 {
-                    let tmp: *mut s_list = unsafe { std::ptr::read(&(list as *mut s_list)) };
+                    let tmp: *mut TList = unsafe { std::ptr::read(&(list as *mut TList)) };
                     list = unsafe { &mut *(*list).next };
                     let content = unsafe {
-                        std::slice::from_raw_parts((*tmp).data as *mut u8, i.as_bytes().len())
+                        CStr::from_ptr((*tmp).data.cast())
                     };
-                    verbose!("Content: {:?}", content);
-                    assert_eq!(content, i.as_bytes());
+                    user_data.push(String::from_utf8_lossy(content.to_bytes()).into_owned());
                     unsafe {
                         libc::free(tmp as *mut cty::c_void);
                     }
                 }
+                assert_eq!(right_data, user_data, "either you deleted too much elements, either not enough, either the wrong ones");
             }
         }
     };
@@ -76,3 +84,7 @@ test!(
     ],
     "11037"
 );
+
+// How to add tests:
+// `test!(name_of_the_test, ["str1", "str2", "str3", ...], "data_reference")`
+// Every items with the same first character as data_reference will be deleted

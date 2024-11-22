@@ -1,20 +1,35 @@
+use crate::libasm;
+use pretty_assertions::assert_eq;
 use std::ffi::CString;
 
-use crate::ft_strlen;
-
+///
+/// This test uses `ft_strlen` to find the len of the string, then compare it with
+/// the len of the Rust string.
+///
 macro_rules! test {
     ($name: ident, $to_test: expr) => {
         crate::fork_test! {
             #[test]
             fn $name() {
                 let test_str = CString::new($to_test).expect("Couldn't create string");
-                let result = unsafe { ft_strlen(test_str.as_ptr()) };
-                assert_eq!(result, test_str.as_bytes().len());
+                let result = unsafe { libasm::ft_strlen(test_str.as_ptr()) };
+                eprintln!("the string tested: `{}`", $to_test);
+                assert_eq!(result, test_str.as_bytes().len(), "bad string length");
             }
         }
     };
 }
 
-test!(basic, "SuperTest");
-test!(longer, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.");
-test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。");
+test!(with_empty_string, "");
+test!(with_short_string, "SuperTest");
+test!(
+    with_long_string,
+    include_str!("../../../test_files/longer.txt")
+);
+test!(
+    with_utf8_characters,
+    include_str!("../../../test_files/utf8.txt")
+);
+
+// How to add new tests:
+// Simply write `test!(name_of_the_test, "the string that will be tested")`
