@@ -19,7 +19,7 @@ macro_rules! test {
                         libasm::ft_list_push_front(&mut list, i.as_ptr() as *mut libc::c_void);
                     }
                 }
-                unsafe { libasm::ft_list_sort(&mut list, utils::strcmp_wrapper) }
+                unsafe { libasm::ft_list_sort(&mut list, Some(utils::strcmp_wrapper)) }
 
                 all_data.sort();
                 let mut user_sorted_data = Vec::new();
@@ -46,8 +46,28 @@ macro_rules! test {
     };
 }
 
+crate::fork_test! {
+    #[test]
+    fn with_null_list() {
+        unsafe {
+            libasm::ft_list_sort(std::ptr::null_mut(), Some(utils::strcmp_wrapper))
+        }
+    }
+
+    #[test]
+    fn with_no_compare_function() {
+        let mut list = TList { data: std::ptr::null_mut(), next: std::ptr::null_mut() };
+        let mut list = &mut list as *mut TList;
+        unsafe {
+            libasm::ft_list_sort(&mut list as *mut *mut TList, None)
+        }
+    }
+}
+
+test!(with_empty_list, [] as [&str; 0]);
+
 test!(
-    basic,
+    with_five_items,
     [
         "Bonjour",
         "je vais bien",
@@ -57,11 +77,11 @@ test!(
     ]
 );
 test!(
-    ten_items,
+    with_ten_items,
     ["4", "1", "5", "7", "0", "9", "3", "8", "2", "6"]
 );
 test!(
-    hundred,
+    with_hundred_items,
     [
         "9", "15", "26", "36", "37", "38", "23", "31", "21", "5", "2", "10", "11", "7", "6", "22",
         "12", "32", "33", "24", "3", "25", "39", "1", "4", "14", "16", "34", "30", "47", "50",

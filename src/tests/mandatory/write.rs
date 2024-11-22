@@ -43,10 +43,16 @@ crate::fork_test! {
     }
 }
 
-test!(nothing, b"");
-test!(short, b"SuperTest\n");
-test!(longer, include_bytes!("../../../test_files/longer.txt"));
-test!(utf8, include_bytes!("../../../test_files/utf8.txt"));
+test!(with_empty_string, b"");
+test!(with_short_input, b"SuperTest\n");
+test!(
+    with_longer_input,
+    include_bytes!("../../../test_files/longer.txt")
+);
+test!(
+    with_utf8_input,
+    include_bytes!("../../../test_files/utf8.txt")
+);
 
 // How to add new tests:
 // Simply write `test!(name_of_the_test, b"the string that will be written")`

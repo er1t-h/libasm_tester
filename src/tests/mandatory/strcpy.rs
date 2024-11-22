@@ -24,9 +24,16 @@ macro_rules! test {
     };
 }
 
-test!(basic, "superTest");
-test!(longer, include_str!("../../../test_files/longer.txt"));
-test!(utf8, include_str!("../../../test_files/utf8.txt"));
+test!(with_empty_string, "");
+test!(with_short_input, "superTest");
+test!(
+    with_longer_input,
+    include_str!("../../../test_files/longer.txt")
+);
+test!(
+    with_utf8_input,
+    include_str!("../../../test_files/utf8.txt")
+);
 
 // How to add new tests:
 // Simply write `test!(name_of_the_test, "the string that will be tested")`

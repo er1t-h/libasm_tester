@@ -3,7 +3,10 @@
 This is a tester for the `libasm` project of school 42.
 It benefits from the speed of Rust's testing framework, allowing to launch all tests in under a second.
 
-## Setup (for correctors)
+## Warning
+Of course, you shouldn't use that as a student. I know I cannot prevent you to use it. But I mean it. There are maybe cases this tester doesn't handle. And you should always write your own tests.
+
+## Setup
 
 1. Download the release of this tester inside the corrected's libasm project.
 2. Add this in the Makefile of the corrected (of course, change the `${OBJS}` if needed):
@@ -19,3 +22,5 @@ dynamic_lib:
 ```sh
 valgrind --leak-check=full --trace-children=yes --show-leak-kinds=all --suppressions=./valgrind_suppression_files/patch_rusty_and_cargo_test.txt ./libasm_tester mandatory
 ```
+
+6. **If a test fails, and the error message contains "DPS:", it's not the student fault**. Therefore, Don't Penalize the Student.

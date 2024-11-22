@@ -1,5 +1,8 @@
 use crate::libasm::{self, TList};
-use std::ffi::{CStr, CString};
+use std::{
+    ffi::{CStr, CString},
+    ptr::NonNull,
+};
 
 macro_rules! test {
     ($name: ident, $arg: expr) => {
@@ -42,9 +45,18 @@ macro_rules! test {
     };
 }
 
-test!(basic, ["Yes", "Nope", "Meh"]);
+crate::fork_test! {
+    #[test]
+    fn with_list_as_null() {
+        unsafe {
+            libasm::ft_list_push_front(std::ptr::null_mut(), NonNull::dangling().as_mut());
+        }
+    }
+}
+
+test!(with_three_items, ["Yes", "Nope", "Meh"]);
 test!(
-    more_items,
+    with_eight_items,
     [
         "Yes",
         "Nope",
@@ -56,7 +68,7 @@ test!(
         "ye"
     ]
 );
-test!(one_item, ["Yes"]);
+test!(with_one_item, ["Yes"]);
 
 // How to add tests:
 // `test!(name_of_the_test, ["str1", "str2", "str3", ...])`

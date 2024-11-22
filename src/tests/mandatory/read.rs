@@ -45,9 +45,15 @@ crate::fork_test! {
     }
 }
 
-test!(basic, b"SuperTest");
-test!(longer, include_bytes!("../../../test_files/longer.txt"));
-test!(utf8, include_bytes!("../../../test_files/utf8.txt"));
+test!(with_short_input, b"SuperTest");
+test!(
+    with_longer_input,
+    include_bytes!("../../../test_files/longer.txt")
+);
+test!(
+    with_utf8_input,
+    include_bytes!("../../../test_files/utf8.txt")
+);
 
 // How to add tests:
 // Then write `test!(name_of_the_test, b"The string to read")`

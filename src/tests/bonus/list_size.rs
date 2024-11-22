@@ -28,10 +28,20 @@ macro_rules! test {
     };
 }
 
+crate::fork_test! {
+    #[test]
+    fn with_null_as_argument() {
+        let ret = unsafe {
+            libasm::ft_list_size(std::ptr::null())
+        };
+        assert_eq!(ret, 0);
+    }
+}
+
 test!(with_empty_list, [] as [&str; 0]);
-test!(basic, ["Yes", "Nope", "Meh"]);
+test!(with_three_items, ["Yes", "Nope", "Meh"]);
 test!(
-    more_items,
+    with_eight_items,
     [
         "Yes",
         "Nope",
@@ -43,9 +53,9 @@ test!(
         "ye"
     ]
 );
-test!(one_item, ["Yes"]);
+test!(with_one_item, ["Yes"]);
 test!(
-    hundred,
+    with_hundred_items,
     [
         "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
         "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31",

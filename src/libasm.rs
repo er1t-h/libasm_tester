@@ -30,18 +30,18 @@ function_wrapper!(ft_strdup(s: *const c_char) -> *mut c_char);
 
 function_wrapper!(ft_atoi_base(s: *const c_char, base: *const c_char) -> c_int);
 function_wrapper!(ft_list_push_front(ls: *mut *mut TList, data: *mut c_void));
-function_wrapper!(ft_list_size(ls: *mut TList) -> size_t);
+function_wrapper!(ft_list_size(ls: *const TList) -> size_t);
 function_wrapper!(
     ft_list_remove_if(
         begin_list: *mut *mut TList,
         data_ref: *mut c_void,
-        cmp: unsafe extern "C" fn(*const c_void, *const c_void) -> c_int,
-        free_fct: unsafe extern "C" fn(*mut c_void)
+        cmp: Option<unsafe extern "C" fn(*const c_void, *const c_void) -> c_int>,
+        free_fct: Option<unsafe extern "C" fn(*mut c_void)>
     )
 );
 function_wrapper!(
     ft_list_sort(
         begin_list: *mut *mut TList,
-        cmp: unsafe extern "C" fn(*const c_void, *const c_void) -> c_int
+        cmp: Option<unsafe extern "C" fn(*const c_void, *const c_void) -> c_int>
     )
 );

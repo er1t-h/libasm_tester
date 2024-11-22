@@ -36,31 +36,31 @@ test!(longer, include_str!("../../../test_files/longer.txt"));
 test!(utf8, include_str!("../../../test_files/utf8.txt"));
 
 // Mismatch
-test!(same_begin, "SuperTest!", "Soit, je comprends");
-test!(no_compare, "SuperTest!", "Bof pas trop");
-test!(basic_positive, "SuperTeste", "SuperTest");
-test!(basic_negative, "SuperTest", "SuperTeste");
+test!(with_same_first_letter, "SuperTest!", "Soit, je comprends");
+test!(without_any_common_point, "SuperTest!", "Bof pas trop");
+test!(with_short_positive_input, "SuperTeste", "SuperTest");
+test!(with_short_negative_input, "SuperTest", "SuperTeste");
 
 const FAILED_LOREM: &str = "Lorme ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.";
 test!(
-    longer_positive,
+    with_longer_input_positive,
     FAILED_LOREM,
     include_str!("../../../test_files/longer.txt")
 );
 test!(
-    longer_negative,
+    with_longer_input_negative,
     include_str!("../../../test_files/longer.txt"),
     FAILED_LOREM
 );
 
 const FAILED_UTF8: &str = "Salut! C'est un test de qualité contenant de supers UTF-8. 🀓麻雀🀄がしたい。このテストは本当に面白いなぁ。";
 test!(
-    utf8_positive,
+    with_utf8_input_positive,
     FAILED_UTF8,
     include_str!("../../../test_files/utf8.txt")
 );
 test!(
-    utf8_negative,
+    with_utf8_input_negative,
     include_str!("../../../test_files/utf8.txt"),
     FAILED_UTF8
 );

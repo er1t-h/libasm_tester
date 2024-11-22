@@ -25,8 +25,8 @@ macro_rules! test {
                     libasm::ft_list_remove_if(
                         &mut list,
                         tmp.as_ptr() as *mut libc::c_void,
-                        utils::compare_first_letter,
-                        utils::no_free,
+                        Some(utils::compare_first_letter),
+                        Some(utils::no_free),
                     )
                 }
 
@@ -55,9 +55,60 @@ macro_rules! test {
     };
 }
 
-test!(basic, ["Yup", "Nope", "Yup"], "Nope");
+crate::fork_test! {
+    #[test]
+    fn with_list_as_null() {
+        let mut data = [1];
+        unsafe {
+            libasm::ft_list_remove_if(
+                std::ptr::null_mut(),
+                data.as_mut_ptr().cast(),
+                Some(utils::compare_first_letter),
+                Some(utils::no_free)
+            );
+        }
+    }
+
+    #[test]
+    fn with_cmp_as_null() {
+        let mut list = TList { data: std::ptr::null_mut(), next: std::ptr::null_mut() };
+        let mut list = &mut list as *mut TList;
+        let mut data = [1];
+        unsafe {
+            libasm::ft_list_remove_if(
+                &mut list as *mut *mut TList,
+                data.as_mut_ptr().cast(),
+                None,
+                Some(utils::no_free)
+            );
+        }
+    }
+
+    #[test]
+    fn with_free_as_null() {
+        let mut list = TList { data: std::ptr::null_mut(), next: std::ptr::null_mut() };
+        let mut list = &mut list as *mut TList;
+        let mut data = [1];
+        unsafe {
+            libasm::ft_list_remove_if(
+                &mut list as *mut *mut TList,
+                data.as_mut_ptr().cast(),
+                Some(utils::compare_first_letter),
+                None
+            );
+        }
+    }
+}
+
+test!(with_empty_list, [] as [&str; 0], "Yes");
+test!(with_three_items, ["Yup", "Nope", "Yup"], "Nope");
 test!(
-    more_items,
+    with_three_items_removing_all,
+    ["Nope", "Nope", "Nope"],
+    "Nope"
+);
+test!(
+    with_eight_items,
     [
         "Yes",
         "Nope",
@@ -70,9 +121,9 @@ test!(
     ],
     "Rope"
 );
-test!(one_item, ["Yes"], "Yes");
+test!(with_one_item, ["Yes"], "Yes");
 test!(
-    hundred,
+    with_hundred_items,
     [
         "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
         "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31",
