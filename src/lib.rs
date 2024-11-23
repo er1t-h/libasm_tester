@@ -95,19 +95,4 @@ macro_rules! fork_test {
 #[allow(unused_imports)]
 pub(crate) use fork_test;
 
-#[allow(unused_macros)]
-#[cfg(feature = "verbose")]
-macro_rules! verbose {
-	($($args: expr),+) => {
-		println!($($args),+);
-	};
-}
-#[allow(unused_macros)]
-#[cfg(not(feature = "verbose"))]
-macro_rules! verbose {
-    ($($args: expr),+) => {};
-}
-
 use libloading::Library;
-#[allow(unused_imports)]
-pub(crate) use verbose;
